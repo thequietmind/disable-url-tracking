@@ -31,7 +31,7 @@ async function ensureOffscreenDocument() {
   });
 
   if (existingContexts.length > 0) {
-    return;
+    return true;
   }
 
   await chrome.offscreen.createDocument({
@@ -61,7 +61,13 @@ async function copyTextFromBackgroundPage(text) {
 }
 
 async function copyText(text) {
-  const hasOffscreenDocument = await ensureOffscreenDocument();
+  let hasOffscreenDocument = false;
+
+  try {
+    hasOffscreenDocument = await ensureOffscreenDocument();
+  } catch {
+    hasOffscreenDocument = false;
+  }
 
   if (hasOffscreenDocument) {
     await chrome.runtime.sendMessage({
