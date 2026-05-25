@@ -113,7 +113,7 @@ button.secondary,
 
 .policy-table {
   display: grid;
-  grid-template-columns: 1fr 150px 1fr 1fr 80px;
+  grid-template-columns: 1fr 150px 1fr 1fr 1fr 80px;
   gap: 8px;
 }
 
@@ -171,4 +171,3 @@ button.secondary,
     color: #a8b6bc;
   }
 }
-

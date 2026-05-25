@@ -58,7 +58,8 @@ export const DEFAULT_SETTINGS = {
   blocklist: [],
   sitePolicies: {
     "google.com": {
-      mode: "compatibility"
+      mode: "clean",
+      compatibilityParams: ["udm=50"]
     }
   }
 };

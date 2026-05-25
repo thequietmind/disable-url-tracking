@@ -57,6 +57,7 @@ function createModeSelect(value = "default") {
 
 function addPolicyRow(domain = "", policy = {}) {
   const domainInput = document.createElement("input");
+  const compatibilityInput = document.createElement("input");
   const preserveInput = document.createElement("input");
   const removeInput = document.createElement("input");
   const removeButton = document.createElement("button");
@@ -64,6 +65,8 @@ function addPolicyRow(domain = "", policy = {}) {
 
   domainInput.placeholder = "example.com";
   domainInput.value = domain;
+  compatibilityInput.placeholder = "udm=50";
+  compatibilityInput.value = joinParams(policy.compatibilityParams);
   preserveInput.placeholder = "ref, session";
   preserveInput.value = joinParams(policy.preserveParams);
   removeInput.placeholder = "custom_id, promo_*";
@@ -76,6 +79,7 @@ function addPolicyRow(domain = "", policy = {}) {
     for (const element of [
       domainInput,
       modeSelect,
+      compatibilityInput,
       preserveInput,
       removeInput,
       removeButton
@@ -87,6 +91,7 @@ function addPolicyRow(domain = "", policy = {}) {
   elements.policyRows.append(
     domainInput,
     modeSelect,
+    compatibilityInput,
     preserveInput,
     removeInput,
     removeButton
@@ -115,11 +120,12 @@ function collectPolicies() {
   const children = [...elements.policyRows.children];
   const policies = {};
 
-  for (let index = 0; index < children.length; index += 5) {
+  for (let index = 0; index < children.length; index += 6) {
     const domain = children[index].value.trim().toLowerCase();
     const mode = children[index + 1].value;
-    const preserveParams = splitParams(children[index + 2].value);
-    const removeParams = splitParams(children[index + 3].value);
+    const compatibilityParams = splitParams(children[index + 2].value);
+    const preserveParams = splitParams(children[index + 3].value);
+    const removeParams = splitParams(children[index + 4].value);
 
     if (!domain) {
       continue;
@@ -129,6 +135,10 @@ function collectPolicies() {
 
     if (mode !== "default") {
       policies[domain].mode = mode;
+    }
+
+    if (compatibilityParams.length > 0) {
+      policies[domain].compatibilityParams = compatibilityParams;
     }
 
     if (preserveParams.length > 0) {

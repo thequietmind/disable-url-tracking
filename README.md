@@ -4,7 +4,7 @@ Disable URL Tracking is a small Chrome/Chromium Manifest V3 extension that remov
 
 ## Why it exists
 
-Many URL cleaners work well until a stateful site depends on query parameters for navigation or session state. This MVP focuses on a compact cleaning engine plus site-specific modes, so users can keep cleaning enabled broadly while setting sensitive sites such as `google.com` to compatibility or disabled mode.
+Many URL cleaners work well until a stateful site depends on query parameters for navigation or session state. This MVP focuses on a compact cleaning engine plus site-specific modes, so users can keep cleaning enabled broadly while setting sensitive URLs such as Google AI Mode (`udm=50`) to compatibility.
 
 ## How it differs from ClearURLs
 
@@ -27,6 +27,22 @@ npm test
 ```
 
 No build step is required.
+
+## Manual Testing
+
+Use a Google redirect wrapper to test automatic redirect unwrapping. The default Google policy is clean except when the URL contains `udm=50`:
+
+```text
+https://www.google.com/url?q=https%3A%2F%2Fexample.com%2Fpage%3Futm_source%3Dnews%26fbclid%3D123%26foo%3Dbar%23section
+```
+
+Expected result:
+
+```text
+https://example.com/page?foo=bar#section
+```
+
+To verify the Google AI Mode escape hatch, open a Google URL containing `udm=50`; it should not be automatically rewritten.
 
 ## Privacy
 

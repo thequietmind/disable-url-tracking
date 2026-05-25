@@ -40,11 +40,36 @@ test("blocklist only cleans matching domains", () => {
   assert.equal(skippedPolicy.mode, "disabled");
 });
 
-test("google.com default policy resolves to compatibility", () => {
+test("google.com default policy resolves to clean", () => {
   const policy = getEffectivePolicy("https://www.google.com/search?q=test", DEFAULT_SETTINGS);
 
   assert.equal(policy.enabled, true);
+  assert.equal(policy.mode, "clean");
+});
+
+test("google.com with udm=50 resolves to compatibility", () => {
+  const policy = getEffectivePolicy(
+    "https://www.google.com/search?q=test&udm=50",
+    DEFAULT_SETTINGS
+  );
+
+  assert.equal(policy.enabled, true);
   assert.equal(policy.mode, "compatibility");
+});
+
+test("disabled site policy takes precedence over compatibility params", () => {
+  const policy = getEffectivePolicy("https://www.google.com/search?q=test&udm=50", {
+    ...DEFAULT_SETTINGS,
+    sitePolicies: {
+      "google.com": {
+        mode: "disabled",
+        compatibilityParams: ["udm=50"]
+      }
+    }
+  });
+
+  assert.equal(policy.enabled, false);
+  assert.equal(policy.mode, "disabled");
 });
 
 test("redirect unwrapping defaults to enabled for clean policies", () => {
