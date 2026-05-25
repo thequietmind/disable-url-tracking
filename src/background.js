@@ -4,6 +4,19 @@ import { getSettings } from "./core/settings.js";
 
 const COPY_MENU_ID = "copy-clean-link";
 const OFFSCREEN_DOCUMENT_PATH = "src/offscreen/offscreen.html";
+const pendingAutoCleanUrlsByTab = new Map();
+
+function isWebUrl(url) {
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
+function shouldCleanAutomatically(policy) {
+  return policy.enabled && policy.mode === "clean";
+}
 
 async function getActiveTab() {
   const [tab] = await chrome.tabs.query({
@@ -17,6 +30,43 @@ async function getCleanResult(url) {
   const settings = await getSettings();
   const policy = getEffectivePolicy(url, settings);
   return cleanUrl(url, policy);
+}
+
+async function cleanTabUrlAutomatically(tabId, url) {
+  const pendingUrl = pendingAutoCleanUrlsByTab.get(tabId);
+
+  if (pendingUrl === url) {
+    pendingAutoCleanUrlsByTab.delete(tabId);
+    return;
+  }
+
+  pendingAutoCleanUrlsByTab.delete(tabId);
+
+  if (!isWebUrl(url)) {
+    return;
+  }
+
+  const settings = await getSettings();
+  const policy = getEffectivePolicy(url, settings);
+
+  if (!shouldCleanAutomatically(policy)) {
+    return;
+  }
+
+  const result = cleanUrl(url, policy);
+
+  if (!result.changed) {
+    return;
+  }
+
+  pendingAutoCleanUrlsByTab.set(tabId, result.cleanedUrl);
+
+  try {
+    await chrome.tabs.update(tabId, { url: result.cleanedUrl });
+  } catch (error) {
+    pendingAutoCleanUrlsByTab.delete(tabId);
+    throw error;
+  }
 }
 
 async function ensureOffscreenDocument() {
@@ -133,6 +183,20 @@ chrome.contextMenus.onClicked.addListener((info) => {
   getCleanResult(info.linkUrl)
     .then((result) => copyText(result.cleanedUrl))
     .catch((error) => console.error(error));
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (!changeInfo.url) {
+    return;
+  }
+
+  cleanTabUrlAutomatically(tabId, changeInfo.url).catch((error) => {
+    console.error(error);
+  });
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  pendingAutoCleanUrlsByTab.delete(tabId);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

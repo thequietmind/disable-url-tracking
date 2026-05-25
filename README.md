@@ -1,6 +1,6 @@
 # Disable URL Tracking
 
-Disable URL Tracking is a small Chrome/Chromium Manifest V3 extension that removes common tracking query parameters from URLs while giving users per-site policy control.
+Disable URL Tracking is a small Chrome/Chromium Manifest V3 extension that removes common tracking query parameters from URLs while giving users per-site policy control. In clean mode, it automatically cleans tab URLs after navigation starts; compatibility mode skips automatic rewrites but keeps manual cleaning available.
 
 ## Why it exists
 
@@ -8,7 +8,7 @@ Many URL cleaners work well until a stateful site depends on query parameters fo
 
 ## How it differs from ClearURLs
 
-This is not a ClearURLs fork and does not ship the ClearURLs provider catalog. The architecture is intentionally small: a reusable cleaning module, policy resolution, browser storage, popup actions, options editing, and a context menu copy action. The main differentiator is fine-grained per-site policy control.
+This is not a ClearURLs fork and does not ship the ClearURLs provider catalog. The architecture is intentionally small: a reusable cleaning module, policy resolution, browser storage, automatic tab URL cleaning, popup actions, options editing, and a context menu copy action. The main differentiator is fine-grained per-site policy control.
 
 ## Load unpacked in Chrome
 
@@ -34,7 +34,7 @@ Disable URL Tracking does not collect data, make network requests, or include an
 
 ## Known Limitation
 
-This MVP does not yet include the full ClearURLs provider catalog.
+This MVP does not yet include the full ClearURLs provider catalog or request-time declarativeNetRequest rewriting. Automatic cleaning happens at the tab URL level after navigation starts.
 
 ## Future Ideas
 
@@ -43,4 +43,3 @@ This MVP does not yet include the full ClearURLs provider catalog.
 - History API protection
 - Import/export settings
 - Firefox support
-
