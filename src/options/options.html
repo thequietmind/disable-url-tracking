@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Disable URL Tracking Options</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Disable URL Tracking</h1>
+      </header>
+
+      <section>
+        <h2>Global</h2>
+        <label class="inline">
+          <input id="global-enabled" type="checkbox">
+          <span>Enable URL cleaning</span>
+        </label>
+
+        <label for="default-mode">Default mode</label>
+        <select id="default-mode">
+          <option value="clean">Clean</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </section>
+
+      <section class="grid">
+        <label>
+          <span>Allowlist</span>
+          <textarea id="allowlist" rows="8" spellcheck="false"></textarea>
+        </label>
+
+        <label>
+          <span>Blocklist</span>
+          <textarea id="blocklist" rows="8" spellcheck="false"></textarea>
+        </label>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <h2>Site Policies</h2>
+          <button id="add-policy" type="button">Add site</button>
+        </div>
+        <div class="policy-table">
+          <div class="policy-head">Domain</div>
+          <div class="policy-head">Mode</div>
+          <div class="policy-head">Preserve params</div>
+          <div class="policy-head">Remove params</div>
+          <div class="policy-head"></div>
+          <div id="policy-rows" class="policy-rows"></div>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="save" type="button">Save</button>
+        <button id="reset" type="button">Reset</button>
+        <button id="reset-defaults" type="button">Reset to defaults</button>
+      </section>
+
+      <p id="status" role="status"></p>
+    </main>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>
+

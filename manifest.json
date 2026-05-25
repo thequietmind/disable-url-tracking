@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Disable URL Tracking",
+  "description": "Remove common tracking parameters from URLs with per-site controls.",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Disable URL Tracking"
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "options_page": "src/options/options.html",
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "contextMenus",
+    "offscreen",
+    "storage",
+    "tabs"
+  ]
+}

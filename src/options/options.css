@@ -1,0 +1,174 @@
+:root {
+  color-scheme: light dark;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #172026;
+  background: #f7f8f8;
+}
+
+main {
+  display: grid;
+  gap: 24px;
+  width: min(980px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 28px 0 40px;
+}
+
+header {
+  border-bottom: 1px solid #d9e0e3;
+  padding-bottom: 16px;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+section {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+textarea,
+input,
+select,
+button {
+  border: 1px solid #b9c4c9;
+  border-radius: 6px;
+  font: inherit;
+}
+
+textarea,
+input,
+select {
+  width: 100%;
+  padding: 9px;
+  color: #172026;
+  background: #ffffff;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  min-height: 36px;
+  padding: 8px 12px;
+  color: #ffffff;
+  background: #245f73;
+  cursor: pointer;
+}
+
+button.secondary,
+#reset,
+#reset-defaults,
+.remove-policy {
+  color: #172026;
+  background: #ffffff;
+}
+
+.section-heading,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.actions {
+  justify-content: flex-start;
+}
+
+.policy-table {
+  display: grid;
+  grid-template-columns: 1fr 150px 1fr 1fr 80px;
+  gap: 8px;
+}
+
+.policy-rows {
+  display: contents;
+}
+
+.policy-head {
+  color: #45545c;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#status {
+  min-height: 20px;
+  margin: 0;
+  color: #45545c;
+}
+
+@media (max-width: 760px) {
+  .grid,
+  .policy-table {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-head {
+    display: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #edf2f4;
+    background: #11191d;
+  }
+
+  header {
+    border-bottom-color: #334147;
+  }
+
+  textarea,
+  input,
+  select,
+  button.secondary,
+  #reset,
+  #reset-defaults,
+  .remove-policy {
+    color: #edf2f4;
+    background: #172026;
+  }
+
+  .policy-head,
+  #status {
+    color: #a8b6bc;
+  }
+}
+
