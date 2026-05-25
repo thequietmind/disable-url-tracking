@@ -20,6 +20,10 @@ async function getCleanResult(url) {
 }
 
 async function ensureOffscreenDocument() {
+  if (!chrome.offscreen || !chrome.runtime.getContexts) {
+    return false;
+  }
+
   const offscreenUrl = chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH);
   const existingContexts = await chrome.runtime.getContexts({
     contextTypes: ["OFFSCREEN_DOCUMENT"],
@@ -35,14 +39,39 @@ async function ensureOffscreenDocument() {
     reasons: ["CLIPBOARD"],
     justification: "Copy cleaned URLs from the context menu."
   });
+  return true;
+}
+
+async function copyTextFromBackgroundPage(text) {
+  if (globalThis.navigator?.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  if (!globalThis.document) {
+    throw new Error("Clipboard is unavailable");
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  document.body.append(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }
 
 async function copyText(text) {
-  await ensureOffscreenDocument();
-  await chrome.runtime.sendMessage({
-    type: "copyText",
-    text
-  });
+  const hasOffscreenDocument = await ensureOffscreenDocument();
+
+  if (hasOffscreenDocument) {
+    await chrome.runtime.sendMessage({
+      type: "copyText",
+      text
+    });
+    return;
+  }
+
+  await copyTextFromBackgroundPage(text);
 }
 
 async function cleanCurrentTab() {
@@ -117,4 +146,3 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   return false;
 });
-

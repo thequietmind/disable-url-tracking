@@ -9,6 +9,9 @@
   },
   "background": {
     "service_worker": "src/background.js",
+    "scripts": [
+      "src/background.js"
+    ],
     "type": "module"
   },
   "options_page": "src/options/options.html",
