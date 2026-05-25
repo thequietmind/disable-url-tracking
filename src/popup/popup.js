@@ -84,6 +84,14 @@ async function render() {
     settings.sitePolicies[hostname]?.mode || (policy.mode === settings.defaultMode
       ? "default"
       : policy.mode);
+
+  const lastAutoCleanResult = await chrome.runtime.sendMessage({
+    type: "getLastAutoCleanResult"
+  });
+
+  if (lastAutoCleanResult?.changed) {
+    setStatus(`Last auto-cleaned: ${lastAutoCleanResult.removedParams.join(", ")}`);
+  }
 }
 
 elements.globalEnabled.addEventListener("change", (event) => {
@@ -103,4 +111,3 @@ elements.copyClean.addEventListener("click", () => {
 });
 
 render().catch((error) => setStatus(error.message));
-

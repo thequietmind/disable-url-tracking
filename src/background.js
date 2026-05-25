@@ -5,6 +5,7 @@ import { getSettings } from "./core/settings.js";
 const COPY_MENU_ID = "copy-clean-link";
 const OFFSCREEN_DOCUMENT_PATH = "src/offscreen/offscreen.html";
 const pendingAutoCleanUrlsByTab = new Map();
+const lastAutoCleanResultsByTab = new Map();
 
 function isWebUrl(url) {
   try {
@@ -60,6 +61,7 @@ async function cleanTabUrlAutomatically(tabId, url) {
   }
 
   pendingAutoCleanUrlsByTab.set(tabId, result.cleanedUrl);
+  lastAutoCleanResultsByTab.set(tabId, result);
 
   try {
     await chrome.tabs.update(tabId, { url: result.cleanedUrl });
@@ -167,6 +169,16 @@ async function copyCleanCurrentUrl() {
   };
 }
 
+async function getLastAutoCleanResult() {
+  const tab = await getActiveTab();
+
+  if (!tab?.id) {
+    return null;
+  }
+
+  return lastAutoCleanResultsByTab.get(tab.id) || null;
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: COPY_MENU_ID,
@@ -195,8 +207,41 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   });
 });
 
+if (chrome.webNavigation) {
+  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    if (details.frameId !== 0) {
+      return;
+    }
+
+    cleanTabUrlAutomatically(details.tabId, details.url).catch((error) => {
+      console.error(error);
+    });
+  });
+
+  chrome.webNavigation.onCommitted.addListener((details) => {
+    if (details.frameId !== 0) {
+      return;
+    }
+
+    cleanTabUrlAutomatically(details.tabId, details.url).catch((error) => {
+      console.error(error);
+    });
+  });
+
+  chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    if (details.frameId !== 0) {
+      return;
+    }
+
+    cleanTabUrlAutomatically(details.tabId, details.url).catch((error) => {
+      console.error(error);
+    });
+  });
+}
+
 chrome.tabs.onRemoved.addListener((tabId) => {
   pendingAutoCleanUrlsByTab.delete(tabId);
+  lastAutoCleanResultsByTab.delete(tabId);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -211,6 +256,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     copyCleanCurrentUrl()
       .then(sendResponse)
       .catch((error) => sendResponse({ changed: false, reason: error.message }));
+    return true;
+  }
+
+  if (message?.type === "getLastAutoCleanResult") {
+    getLastAutoCleanResult()
+      .then(sendResponse)
+      .catch(() => sendResponse(null));
     return true;
   }
 
