@@ -21,12 +21,39 @@ export const TRACKING_PARAM_PATTERNS = [
   "_hsmi",
   "pk_campaign",
   "pk_kwd",
-  "twclid"
+  "twclid",
+  "mtm_*",
+  "ga_*",
+  "_ga",
+  "_gl",
+  "yclid",
+  "_openstat",
+  "mkt_tok",
+  "srsltid",
+  "cmpid",
+  "os_ehash",
+  "__twitter_impression",
+  "wt_mc",
+  "wtrid",
+  "tracking_source",
+  "__hsfp",
+  "__hssc",
+  "__hstc",
+  "__s",
+  "hsCtaTracking",
+  "ml_subscriber",
+  "ml_subscriber_hash",
+  "oly_anon_id",
+  "oly_enc_id",
+  "rb_clickid",
+  "s_cid",
+  "wickedid"
 ];
 
 export const DEFAULT_SETTINGS = {
   globalEnabled: true,
   defaultMode: "clean",
+  redirectUnwrappingEnabled: true,
   allowlist: [],
   blocklist: [],
   sitePolicies: {
@@ -35,4 +62,3 @@ export const DEFAULT_SETTINGS = {
     }
   }
 };
-

@@ -7,6 +7,7 @@ import {
 
 const elements = {
   globalEnabled: document.querySelector("#global-enabled"),
+  redirectUnwrappingEnabled: document.querySelector("#redirect-unwrapping-enabled"),
   defaultMode: document.querySelector("#default-mode"),
   allowlist: document.querySelector("#allowlist"),
   blocklist: document.querySelector("#blocklist"),
@@ -98,6 +99,8 @@ function clearPolicies() {
 
 function render(settings) {
   elements.globalEnabled.checked = settings.globalEnabled;
+  elements.redirectUnwrappingEnabled.checked =
+    settings.redirectUnwrappingEnabled !== false;
   elements.defaultMode.value = settings.defaultMode;
   elements.allowlist.value = settings.allowlist.join("\n");
   elements.blocklist.value = settings.blocklist.join("\n");
@@ -143,6 +146,7 @@ function collectPolicies() {
 function collectSettings() {
   return {
     globalEnabled: elements.globalEnabled.checked,
+    redirectUnwrappingEnabled: elements.redirectUnwrappingEnabled.checked,
     defaultMode: elements.defaultMode.value,
     allowlist: splitLines(elements.allowlist.value),
     blocklist: splitLines(elements.blocklist.value),
@@ -171,4 +175,3 @@ elements.resetDefaults.addEventListener("click", async () => {
 
 render(getDefaultSettings());
 loadSavedSettings().catch((error) => setStatus(error.message));
-

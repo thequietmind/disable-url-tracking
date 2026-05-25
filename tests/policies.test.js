@@ -47,3 +47,38 @@ test("google.com default policy resolves to compatibility", () => {
   assert.equal(policy.mode, "compatibility");
 });
 
+test("redirect unwrapping defaults to enabled for clean policies", () => {
+  const policy = getEffectivePolicy("https://example.com/?utm_source=x", {
+    ...DEFAULT_SETTINGS,
+    sitePolicies: {}
+  });
+
+  assert.equal(policy.enabled, true);
+  assert.equal(policy.mode, "clean");
+  assert.equal(policy.redirectUnwrappingEnabled, true);
+});
+
+test("redirect unwrapping can be globally disabled", () => {
+  const policy = getEffectivePolicy("https://example.com/?utm_source=x", {
+    ...DEFAULT_SETTINGS,
+    redirectUnwrappingEnabled: false,
+    sitePolicies: {}
+  });
+
+  assert.equal(policy.enabled, true);
+  assert.equal(policy.redirectUnwrappingEnabled, false);
+});
+
+test("disabled policies disable redirect unwrapping", () => {
+  const policy = getEffectivePolicy("https://example.com/?utm_source=x", {
+    ...DEFAULT_SETTINGS,
+    sitePolicies: {
+      "example.com": {
+        mode: "disabled"
+      }
+    }
+  });
+
+  assert.equal(policy.enabled, false);
+  assert.equal(policy.redirectUnwrappingEnabled, false);
+});

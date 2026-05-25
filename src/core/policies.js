@@ -52,6 +52,7 @@ export function getEffectivePolicy(urlString, settings = DEFAULT_SETTINGS) {
     return {
       enabled: false,
       mode: "disabled",
+      redirectUnwrappingEnabled: false,
       preserveParams: [],
       removeParams: [],
       reason: "Global cleaning is disabled"
@@ -65,6 +66,7 @@ export function getEffectivePolicy(urlString, settings = DEFAULT_SETTINGS) {
     return {
       enabled: false,
       mode: "disabled",
+      redirectUnwrappingEnabled: false,
       preserveParams: [],
       removeParams: [],
       reason: "Invalid URL"
@@ -88,9 +90,10 @@ export function getEffectivePolicy(urlString, settings = DEFAULT_SETTINGS) {
     enabled,
     mode,
     hostname,
+    redirectUnwrappingEnabled:
+      enabled && mergedSettings.redirectUnwrappingEnabled !== false,
     preserveParams: sitePolicy.preserveParams || [],
     removeParams: sitePolicy.removeParams || [],
     reason: enabled ? `Using ${mode} policy` : "Cleaning disabled by policy"
   };
 }
-
