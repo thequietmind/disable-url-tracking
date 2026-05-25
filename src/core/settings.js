@@ -1,4 +1,5 @@
 import { DEFAULT_SETTINGS } from "./defaults.js";
+import { callApi, extensionApi } from "./browser-api.js";
 
 const SETTINGS_KEY = "settings";
 
@@ -19,12 +20,31 @@ function mergeSettings(settings) {
   };
 }
 
-function getStorageArea() {
-  if (!globalThis.chrome?.storage?.sync) {
-    throw new Error("chrome.storage.sync is unavailable");
+function getStorageAreas() {
+  const storageAreas = [
+    extensionApi?.storage?.sync,
+    extensionApi?.storage?.local
+  ].filter(Boolean);
+
+  if (storageAreas.length === 0) {
+    throw new Error("Browser storage is unavailable");
   }
 
-  return globalThis.chrome.storage.sync;
+  return storageAreas;
+}
+
+async function useStorageFallback(action) {
+  let lastError;
+
+  for (const storageArea of getStorageAreas()) {
+    try {
+      return await action(storageArea);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
 }
 
 export function getDefaultSettings() {
@@ -32,19 +52,26 @@ export function getDefaultSettings() {
 }
 
 export async function getSettings() {
-  const result = await getStorageArea().get(SETTINGS_KEY);
+  const result = await useStorageFallback((storageArea) =>
+    callApi(storageArea.get.bind(storageArea), SETTINGS_KEY)
+  );
   return mergeSettings(result[SETTINGS_KEY]);
 }
 
 export async function saveSettings(settings) {
   const mergedSettings = mergeSettings(settings);
-  await getStorageArea().set({ [SETTINGS_KEY]: mergedSettings });
+  await useStorageFallback((storageArea) =>
+    callApi(storageArea.set.bind(storageArea), {
+      [SETTINGS_KEY]: mergedSettings
+    })
+  );
   return mergedSettings;
 }
 
 export async function resetSettings() {
   const defaults = getDefaultSettings();
-  await getStorageArea().set({ [SETTINGS_KEY]: defaults });
+  await useStorageFallback((storageArea) =>
+    callApi(storageArea.set.bind(storageArea), { [SETTINGS_KEY]: defaults })
+  );
   return defaults;
 }
-

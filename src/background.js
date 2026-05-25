@@ -1,6 +1,7 @@
 import { cleanUrl } from "./core/cleaner.js";
 import { getEffectivePolicy } from "./core/policies.js";
 import { getSettings } from "./core/settings.js";
+import { callApi, extensionApi, queryActiveTab } from "./core/browser-api.js";
 
 const COPY_MENU_ID = "copy-clean-link";
 const OFFSCREEN_DOCUMENT_PATH = "src/offscreen/offscreen.html";
@@ -20,11 +21,7 @@ function shouldCleanAutomatically(policy) {
 }
 
 async function getActiveTab() {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-  return tab;
+  return queryActiveTab();
 }
 
 async function getCleanResult(url) {
@@ -64,7 +61,9 @@ async function cleanTabUrlAutomatically(tabId, url) {
   lastAutoCleanResultsByTab.set(tabId, result);
 
   try {
-    await chrome.tabs.update(tabId, { url: result.cleanedUrl });
+    await callApi(extensionApi.tabs.update.bind(extensionApi.tabs), tabId, {
+      url: result.cleanedUrl
+    });
   } catch (error) {
     pendingAutoCleanUrlsByTab.delete(tabId);
     throw error;
@@ -72,21 +71,24 @@ async function cleanTabUrlAutomatically(tabId, url) {
 }
 
 async function ensureOffscreenDocument() {
-  if (!chrome.offscreen || !chrome.runtime.getContexts) {
+  if (!extensionApi.offscreen || !extensionApi.runtime.getContexts) {
     return false;
   }
 
-  const offscreenUrl = chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH);
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: ["OFFSCREEN_DOCUMENT"],
-    documentUrls: [offscreenUrl]
-  });
+  const offscreenUrl = extensionApi.runtime.getURL(OFFSCREEN_DOCUMENT_PATH);
+  const existingContexts = await callApi(
+    extensionApi.runtime.getContexts.bind(extensionApi.runtime),
+    {
+      contextTypes: ["OFFSCREEN_DOCUMENT"],
+      documentUrls: [offscreenUrl]
+    }
+  );
 
   if (existingContexts.length > 0) {
     return true;
   }
 
-  await chrome.offscreen.createDocument({
+  await callApi(extensionApi.offscreen.createDocument.bind(extensionApi.offscreen), {
     url: OFFSCREEN_DOCUMENT_PATH,
     reasons: ["CLIPBOARD"],
     justification: "Copy cleaned URLs from the context menu."
@@ -122,7 +124,7 @@ async function copyText(text) {
   }
 
   if (hasOffscreenDocument) {
-    await chrome.runtime.sendMessage({
+    await callApi(extensionApi.runtime.sendMessage.bind(extensionApi.runtime), {
       type: "copyText",
       text
     });
@@ -145,7 +147,9 @@ async function cleanCurrentTab() {
   const result = await getCleanResult(tab.url);
 
   if (result.changed) {
-    await chrome.tabs.update(tab.id, { url: result.cleanedUrl });
+    await callApi(extensionApi.tabs.update.bind(extensionApi.tabs), tab.id, {
+      url: result.cleanedUrl
+    });
   }
 
   return result;
@@ -179,15 +183,15 @@ async function getLastAutoCleanResult() {
   return lastAutoCleanResultsByTab.get(tab.id) || null;
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
+extensionApi.runtime.onInstalled.addListener(() => {
+  extensionApi.contextMenus.create({
     id: COPY_MENU_ID,
     title: "Copy clean link",
     contexts: ["link"]
   });
 });
 
-chrome.contextMenus.onClicked.addListener((info) => {
+extensionApi.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId !== COPY_MENU_ID || !info.linkUrl) {
     return;
   }
@@ -197,7 +201,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
     .catch((error) => console.error(error));
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+extensionApi.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (!changeInfo.url) {
     return;
   }
@@ -207,8 +211,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   });
 });
 
-if (chrome.webNavigation) {
-  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+if (extensionApi.webNavigation) {
+  extensionApi.webNavigation.onBeforeNavigate.addListener((details) => {
     if (details.frameId !== 0) {
       return;
     }
@@ -218,7 +222,7 @@ if (chrome.webNavigation) {
     });
   });
 
-  chrome.webNavigation.onCommitted.addListener((details) => {
+  extensionApi.webNavigation.onCommitted.addListener((details) => {
     if (details.frameId !== 0) {
       return;
     }
@@ -228,7 +232,7 @@ if (chrome.webNavigation) {
     });
   });
 
-  chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+  extensionApi.webNavigation.onHistoryStateUpdated.addListener((details) => {
     if (details.frameId !== 0) {
       return;
     }
@@ -239,12 +243,12 @@ if (chrome.webNavigation) {
   });
 }
 
-chrome.tabs.onRemoved.addListener((tabId) => {
+extensionApi.tabs.onRemoved.addListener((tabId) => {
   pendingAutoCleanUrlsByTab.delete(tabId);
   lastAutoCleanResultsByTab.delete(tabId);
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+extensionApi.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "cleanCurrentTab") {
     cleanCurrentTab()
       .then(sendResponse)

@@ -22,5 +22,14 @@
     "storage",
     "tabs",
     "webNavigation"
-  ]
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "disable-url-tracking@example.com"
+    }
+  }
 }

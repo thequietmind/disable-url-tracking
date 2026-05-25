@@ -1,5 +1,6 @@
 import { getSettings, saveSettings } from "../core/settings.js";
 import { getEffectivePolicy } from "../core/policies.js";
+import { callApi, extensionApi, queryActiveTab } from "../core/browser-api.js";
 
 const elements = {
   globalEnabled: document.querySelector("#global-enabled"),
@@ -18,11 +19,7 @@ function setStatus(message) {
 }
 
 async function getActiveTab() {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-  return tab;
+  return queryActiveTab();
 }
 
 function getHostname(url) {
@@ -62,7 +59,10 @@ async function saveGlobalEnabled(enabled) {
 }
 
 async function sendAction(type) {
-  const result = await chrome.runtime.sendMessage({ type });
+  const result = await callApi(
+    extensionApi.runtime.sendMessage.bind(extensionApi.runtime),
+    { type }
+  );
   const removed = result?.removedParams?.length
     ? ` Removed: ${result.removedParams.join(", ")}.`
     : "";
@@ -85,12 +85,21 @@ async function render() {
       ? "default"
       : policy.mode);
 
-  const lastAutoCleanResult = await chrome.runtime.sendMessage({
-    type: "getLastAutoCleanResult"
-  });
+  const lastAutoCleanResult = await callApi(
+    extensionApi.runtime.sendMessage.bind(extensionApi.runtime),
+    {
+      type: "getLastAutoCleanResult"
+    }
+  );
 
   if (lastAutoCleanResult?.changed) {
     setStatus(`Last auto-cleaned: ${lastAutoCleanResult.removedParams.join(", ")}`);
+  } else if (!activeTab) {
+    setStatus("No active browser tab found");
+  } else if (!activeTab.url) {
+    setStatus("Tab URL unavailable. Grant site access and reload the extension.");
+  } else {
+    setStatus("");
   }
 }
 
